@@ -22,7 +22,7 @@ def createReposTable():
                 priority TEXT,
                 priorityOrder INTEGER,
                 nextMilestone TEXT,
-                timeToNextMilestone INTEGER,
+                timeToNextMilestone TEXT,
                 progress INTEGER, 
                 FOREIGN KEY(userId) REFERENCES users(userId)
             )''')
