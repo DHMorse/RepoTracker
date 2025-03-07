@@ -6,7 +6,6 @@ load_dotenv()
 
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
 
-
 def createUsersTables():
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()

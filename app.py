@@ -142,13 +142,14 @@ if __name__ == '__main__':
         cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
         user = cursor.fetchone()
         
-        cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
-        repos = cursor.fetchall()
+        if not user:
+            insertUser(USERNAME)
+        
+            cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
+            user = cursor.fetchone()
 
     repoList: list[str] = getUserReposNames(USERNAME)
 
-    if not user:
-        insertUser(USERNAME)
     
     for repo in repoList:
         with open(".repoignore", "r") as file:
