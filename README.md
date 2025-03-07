@@ -19,33 +19,33 @@ A task prioritization and project management tool that integrates with your GitH
 ## 🔧 Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/DHMorse/refactored-goggles.git
-   cd refactored-goggles
-   ```
+    ```bash
+    git clone https://github.com/DHMorse/refactored-goggles.git
+    cd refactored-goggles
+    ```
 
 2. Edit the a `.env` file in the root directory:
-   ```ini
-   USERNAME=YOUR_GITHUB_USERNAME
-   DATABASE_PATH=./data/database.db
-   ```
-
-3. Run the setup script:
-   ```bash
-   chmod +x run.sh
-   ./run.sh
-   ```
+    ```ini
+    USERNAME=YOUR_GITHUB_USERNAME
+    DATABASE_PATH=./data/database.db
+    ```
 
 ## 🖥️ Usage
 
 1. Start the application:
-   ```bash
-   ./run.sh
-   ```
+    ```bash
+    ./run.sh
+    ```
+    or
+    ```cmd
+    .\run.bat
+    ```
+
 2. Open your browser and go to:
-   ```
-   http://localhost:5000
-   ```
+    ```
+    http://localhost:5000
+    ```
+
 3. Use the interface to:
    - View repositories by priority
    - Track project progress
