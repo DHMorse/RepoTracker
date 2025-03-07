@@ -136,6 +136,12 @@ build_typescript() {
     fi
 }
 
+# Function to start the application
+run_app() {
+    info "Starting application..."
+    python app.py
+}
+
 # Main execution
 main() {
     info "Starting setup process..."

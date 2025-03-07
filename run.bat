@@ -189,10 +189,31 @@ if "%SKIP_NODE_STEPS%"=="true" (
 goto :eof
 
 :run_app
-:: This function was called in the original script but not defined
-:: Placeholder for running the application
 call :info "Running application..."
-:: Add actual app launching logic here
+
+:: Make sure we're still in the virtual environment
+if exist .venv\Scripts\activate.bat (
+    if not defined VIRTUAL_ENV (
+        call .venv\Scripts\activate.bat
+    )
+)
+
+:: Check if app.py exists
+if not exist app.py (
+    call :error "app.py not found. Cannot start application."
+    exit /b 1
+)
+
+:: Run the Python application with proper parameters
+call :info "Starting the application server..."
+%PYTHON_CMD% app.py
+
+:: If Python app exits with error
+if %ERRORLEVEL% neq 0 (
+    call :error "Application crashed or failed to start (exit code: %ERRORLEVEL%)"
+    exit /b %ERRORLEVEL%
+)
+
 goto :eof
 
 endlocal
