@@ -1,4 +1,4 @@
-# Refactored Goggles
+# RepoTracker
 
 A task prioritization and project management tool that integrates with your GitHub repositories, helping you organize and track progress on your coding projects.
 
@@ -20,8 +20,8 @@ A task prioritization and project management tool that integrates with your GitH
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/DHMorse/refactored-goggles.git
-    cd refactored-goggles
+    git clone https://github.com/DHMorse/RepoTracker.git
+    cd RepoTracker
     ```
 
 2. Edit the a `.env` file in the root directory:
