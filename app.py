@@ -150,10 +150,10 @@ if __name__ == '__main__':
     if not user:
         insertUser(USERNAME)
     
-    if not repos:
-        for repo in repoList:
+    for repo in repoList:
+        with open(".repoignore", "r") as file:
+            ignoreList = file.read().lower().strip().splitlines()
+        if not repo in ignoreList:
             updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
-        
-        sortRepoPriorityOrder(USERNAME)
 
     app.run(host='0.0.0.0', port=5000, debug=True)
