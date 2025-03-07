@@ -93,7 +93,7 @@ python --version >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     python3 --version >nul 2>&1
     if %ERRORLEVEL% neq 0 (
-        call :error "Python 3 not found. Please install Python 3.8+"
+        call :error "Python 3 not found. Please install Python 3.10+"
         exit /b 1
     ) else (
         set PYTHON_CMD=python3
@@ -109,12 +109,12 @@ for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
 )
 
 if %MAJOR% LSS 3 (
-    call :error "Python 3.8+ is required (found %PYTHON_VERSION%)"
+    call :error "Python 3.10+ is required (found %PYTHON_VERSION%)"
     exit /b 1
 )
 if %MAJOR% EQU 3 (
-    if %MINOR% LSS 8 (
-        call :error "Python 3.8+ is required (found %PYTHON_VERSION%)"
+    if %MINOR% LSS 10 (
+        call :error "Python 3.10+ is required (found %PYTHON_VERSION%)"
         exit /b 1
     )
 )

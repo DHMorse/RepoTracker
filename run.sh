@@ -37,20 +37,20 @@ mkdir -p data
 # Function to check python version
 check_python() {
     info "Checking Python version..."
-    # Check if Python 3.8+ is installed
+    # Check if Python 3.10+ is installed
     if command -v python3 &>/dev/null; then
         PYTHON_VERSION=$(python3 --version | cut -d ' ' -f 2)
         MAJOR=$(echo "$PYTHON_VERSION" | cut -d '.' -f 1)
         MINOR=$(echo "$PYTHON_VERSION" | cut -d '.' -f 2)
         
-        if [ "$MAJOR" -ge 3 ] && [ "$MINOR" -ge 8 ]; then
+        if [ "$MAJOR" -ge 3 ] && [ "$MINOR" -ge 10 ]; then
             success "Python $PYTHON_VERSION detected"
         else
-            error "Python 3.8+ is required (found $PYTHON_VERSION)"
+            error "Python 3.10+ is required (found $PYTHON_VERSION)"
             exit 1
         fi
     else
-        error "Python 3 not found. Please install Python 3.8+"
+        error "Python 3 not found. Please install Python 3.10+"
         exit 1
     fi
 }
