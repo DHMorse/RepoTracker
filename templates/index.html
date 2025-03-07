@@ -7,33 +7,6 @@
     <link rel="stylesheet" href="static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="static/dist/index.js"></script>
-    <style>
-        .task {
-            position: relative;
-        }
-        
-        .edit-task-button {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background-color: #333;
-            border: 1px solid #444;
-            color: #ccc;
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        
-        .edit-task-button:hover {
-            background-color: #444;
-            color: #fff;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -44,10 +17,10 @@
             {% if high_priority_tasks %}
                 {% for task in high_priority_tasks %}
                 <div class="task" data-task-id="{{ task.repoId }}">
-                    <button class="edit-task-button" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="edit-task-button" onclick="handleEditTask(event)" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
                     <div class="task-controls">
-                        <button class="task-button move-up" onclick="" title="Move Up"><i class="fas fa-chevron-up"></i></button>
-                        <button class="task-button move-down" onclick="" title="Move Down"><i class="fas fa-chevron-down"></i></button>
+                        <button class="task-button move-up" onclick="handleMoveUp(event)" title="Move Up"><i class="fas fa-chevron-up"></i></button>
+                        <button class="task-button move-down" onclick="handleMoveDown(event)" title="Move Down"><i class="fas fa-chevron-down"></i></button>
                     </div>
                     <div class="task-name">{{ task.name }}</div>
                     <div class="progress-container">
@@ -75,11 +48,11 @@
             
             {% if medium_priority_tasks %}
                 {% for task in medium_priority_tasks %}
-                <div class="task" data-task-id="{{ task.id }}">
-                    <button class="edit-task-button" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
+                <div class="task" data-task-id="{{ task.repoId }}">
+                    <button class="edit-task-button" onclick="handleEditTask(event)" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
                     <div class="task-controls">
-                        <button class="task-button move-up" onclick="" title="Move Up"><i class="fas fa-chevron-up"></i></button>
-                        <button class="task-button move-down" onclick="" title="Move Down"><i class="fas fa-chevron-down"></i></button>
+                        <button class="task-button move-up" onclick="handleMoveUp(event)" title="Move Up"><i class="fas fa-chevron-up"></i></button>
+                        <button class="task-button move-down" onclick="handleMoveDown(event)" title="Move Down"><i class="fas fa-chevron-down"></i></button>
                     </div>
                     <div class="task-name">{{ task.name }}</div>
                     <div class="progress-container">
@@ -107,11 +80,11 @@
             
             {% if low_priority_tasks %}
                 {% for task in low_priority_tasks %}
-                <div class="task" data-task-id="{{ task.id }}">
-                    <button class="edit-task-button" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
+                <div class="task" data-task-id="{{ task.repoId }}">
+                    <button class="edit-task-button" onclick="handleEditTask(event)" title="Edit Task"><i class="fas fa-pencil-alt"></i></button>
                     <div class="task-controls">
-                        <button class="task-button move-up" onclick="" title="Move Up"><i class="fas fa-chevron-up"></i></button>
-                        <button class="task-button move-down" onclick="" title="Move Down"><i class="fas fa-chevron-down"></i></button>
+                        <button class="task-button move-up" onclick="handleMoveUp(event)" title="Move Up"><i class="fas fa-chevron-up"></i></button>
+                        <button class="task-button move-down" onclick="handleMoveDown(event)" title="Move Down"><i class="fas fa-chevron-down"></i></button>
                     </div>
                     <div class="task-name">{{ task.name }}</div>
                     <div class="progress-container">

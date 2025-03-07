@@ -333,3 +333,29 @@ body {
 #cancel-task-button:hover {
     background-color: #666;
 }
+
+.task {
+    position: relative;
+}
+
+.edit-task-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #333;
+    border: 1px solid #444;
+    color: #ccc;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.edit-task-button:hover {
+    background-color: #444;
+    color: #fff;
+}
