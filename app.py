@@ -1,44 +1,15 @@
-from flask import Flask, render_template
-import requests
-import os
+from flask import Flask, jsonify, request, redirect, render_template
 from dotenv import load_dotenv
+import os
 import sqlite3
-import requests
-from flask import request, jsonify
 
-
-from helperFunctions.database import createDatabase, insertUser, updateRepo, removeRepo
-from flask import redirect
+from helperFunctions.database import createDatabase, insertUser, updateRepo, sortReposByPriorityOrder
+from helperFunctions.main import getUserReposNames
 
 # Init app
 app = Flask(__name__)
 load_dotenv()
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
-
-def getUserReposNames(username: str) -> list[str]:
-    ignoreList: list[str] = []
-    if os.path.exists(".repoignore"):
-        with open(".repoignore", "r") as file:
-            ignoreList = file.read().lower().strip().splitlines()
-
-    url = f"https://api.github.com/users/{username}/repos"
-    response = requests.get(url)
-    repos = response.json()
-    
-    repoList = []
-    
-    # Check if repos is a list (valid response) before processing
-    if isinstance(repos, list):
-        for repo in repos:
-            if isinstance(repo, dict) and 'name' in repo:
-                if ignoreList and repo['name'].lower().strip() in ignoreList:
-                    removeRepo(repo['name'])
-                    continue
-                repoList.append(repo['name'])
-    else:
-        print(f"Error fetching repositories: {repos}")
-    
-    return repoList
 
 @app.route('/<path:path>')
 def catch_all(path):
@@ -49,158 +20,129 @@ def index():
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM repos')
-        repos = cursor.fetchall()
+        repos: list[tuple] = cursor.fetchall()
     
-    tasks = []
-    for repo in repos:
-        tasks.append({
-            "repoId": repo[0],
-            "userId": repo[1],
-            "name": repo[2],
-            "priority": repo[3],
-            "priorityOrder": repo[4],
-            "milestone": repo[5],
-            "time": repo[6],
-            "progress": repo[7]
-        })
-    
-    highPriorityTasks = []
-    mediumPriorityTasks = []
-    lowPriorityTasks = []
-    
-    # Sort tasks by priority
-    for task in tasks:
-        match task["priority"]:
-            case "high":
-                highPriorityTasks.append(task)
-            case "medium":
-                mediumPriorityTasks.append(task)
-            case "low":
-                lowPriorityTasks.append(task)
-    
-    highPriorityTasks.sort(key=lambda x: x["priorityOrder"])
-    mediumPriorityTasks.sort(key=lambda x: x["priorityOrder"])
-    lowPriorityTasks.sort(key=lambda x: x["priorityOrder"])
+    highPriorityRepos, mediumPriorityRepos, lowPriorityRepos = sortReposByPriorityOrder(repos)
 
     return render_template('index.html', 
-                            high_priority_tasks=highPriorityTasks,
-                            medium_priority_tasks=mediumPriorityTasks,
-                            low_priority_tasks=lowPriorityTasks)
+                                highPriorityRepos=highPriorityRepos,
+                                mediumPriorityRepos=mediumPriorityRepos,
+                                lowPriorityRepos=lowPriorityRepos
+                            )
 
-@app.route('/api/tasks/reorder', methods=['POST'])
-def reorder_task():
-    task: dict = request.json
+@app.route('/api/repos/reorder', methods=['POST'])
+def reorder_repo():
+    repo: dict = request.json
     
     # Validate request data
-    if not task or 'repoId' not in task or 'priorityOrder' not in task:
+    if not repo or 'repoId' not in repo or 'priorityOrder' not in repo:
         return jsonify({'error': 'Missing required fields: name and priorityOrder'}), 400
 
     # Check that priorityOrder is a valid integer
     try:
-        task['priorityOrder'] = int(task['priorityOrder'])
+        repo['priorityOrder'] = int(repo['priorityOrder'])
     except (ValueError, TypeError):
         return jsonify({'error': 'priorityOrder must be a valid integer'}), 400
 
-    # Check if the task exists
+    # Check if the repo exists
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (task['repoId'],))
+        cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (repo['repoId'],))
         
         if cursor.fetchone()[0] == 0:
-            return jsonify({'error': 'Task not found'}), 404
+            return jsonify({'error': 'Repo not found'}), 404
     
-    # Update the task's priorityOrder
+    # Update the repos's priorityOrder
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('UPDATE repos SET priorityOrder = ? WHERE repoId = ?', (task['priorityOrder'], task['repoId']))
+        cursor.execute('UPDATE repos SET priorityOrder = ? WHERE repoId = ?', (repo['priorityOrder'], repo['repoId']))
         conn.commit()
 
-        # Check if another task has the same priorityOrder
-        cursor.execute('SELECT COUNT(*) FROM repos WHERE priorityOrder = ? AND repoId != ?', (task['priorityOrder'], task['repoId']))
+        # Check if another repo has the same priorityOrder
+        cursor.execute('SELECT COUNT(*) FROM repos WHERE priorityOrder = ? AND repoId != ?', (repo['priorityOrder'], repo['repoId']))
         if cursor.fetchone()[0] > 0:
-            # If there are other tasks with the same priority order, 
+            # If there are other repos with the same priority order, 
             # we need to update them to prevent collisions
             cursor.execute(
                 'SELECT repoId FROM repos WHERE priorityOrder = ? AND repoId != ?', 
-                (task['priorityOrder'], task['repoId'])
+                (repo['priorityOrder'], repo['repoId'])
             )
-            conflicting_tasks = cursor.fetchall()
+            conflictingRepos = cursor.fetchall()
 
-            for conflicting_task in conflicting_tasks:
-                # Increment the conflicting task's priority order
+            for conflictingRepo in conflictingRepos:
+                # Increment the conflicting repo's priority order
                 cursor.execute(
                     'UPDATE repos SET priorityOrder = priorityOrder + 1 WHERE repoId = ?',
-                    (conflicting_task[0],)
+                    (conflictingRepo[0],)
                 )
             conn.commit()
     
-    return jsonify({'message': 'Task reordered successfully'}), 200
+    return jsonify({'message': 'Repo reordered successfully'}), 200
 
-@app.route('/api/tasks/update', methods=['POST'])
-def update_task():
-    task_data = request.json
+@app.route('/api/repos/update', methods=['POST'])
+def update_repo():
+    repoData = request.json
     
     # Validate request data
-    if not task_data or 'taskId' not in task_data:
-        return jsonify({'error': 'Missing required field: taskId'}), 400
+    if not repoData or 'repoId' not in repoData:
+        return jsonify({'error': 'Missing required field: repoId'}), 400
 
-    # Extract task data
-    task_id = task_data.get('taskId')
-    priority = task_data.get('priority')
-    progress = task_data.get('progress')
-    milestone = task_data.get('milestone')
-    time_required = task_data.get('timeRequired')
+    # Extract repo data
+    repoId: int = repoData.get('repoId')
+    priority: int = repoData.get('priority')
+    progress: int = repoData.get('progress')
+    milestone: str = repoData.get('milestone')
+    timeRequired: str = repoData.get('timeRequired')
     
-    # Check if the task exists
+    # Check if the repo exists
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (task_id,))
+        cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (repoId,))
         
         if cursor.fetchone()[0] == 0:
-            return jsonify({'error': 'Task not found'}), 404
+            return jsonify({'error': 'Repo not found'}), 404
     
-    # Update the task in the database
+    # Update the repo in the database
     try:
         with sqlite3.connect(DATABASE_PATH) as conn:
             cursor = conn.cursor()
             
             # Build the update query dynamically based on provided fields
-            update_fields = []
-            update_values = []
+            updateFields: list[str] = []
+            updateValues: list[any] = []
             
             if priority is not None:
-                update_fields.append('priority = ?')
-                update_values.append(priority)
+                updateFields.append('priority = ?')
+                updateValues.append(priority)
                 
             if progress is not None:
-                update_fields.append('progress = ?')
-                update_values.append(progress)
+                updateFields.append('progress = ?')
+                updateValues.append(progress)
                 
             if milestone is not None:
-                update_fields.append('nextMilestone = ?')  # Updated column name
-                update_values.append(milestone)
+                updateFields.append('nextMilestone = ?')  # Updated column name
+                updateValues.append(milestone)
                 
-            if time_required is not None:
-                update_fields.append('timeToNextMilestone = ?')  # Updated column name
-                update_values.append(time_required)
+            if timeRequired is not None:
+                updateFields.append('timeToNextMilestone = ?')  # Updated column name
+                updateValues.append(timeRequired)
             
-            if not update_fields:
+            if not updateFields:
                 return jsonify({'error': 'No fields to update'}), 400
             
             # Construct and execute the update query
-            update_query = f'UPDATE repos SET {", ".join(update_fields)} WHERE repoId = ?'
-            update_values.append(task_id)
+            updateQuery: str = f'UPDATE repos SET {", ".join(updateFields)} WHERE repoId = ?'
+            updateValues.append(repoId)
             
-            cursor.execute(update_query, tuple(update_values))
+            cursor.execute(updateQuery, tuple(updateValues))
             conn.commit()
     
     except Exception as e:
-        return jsonify({'error': f'Failed to update task: {str(e)}'}), 500
+        return jsonify({'error': f'Failed to update repo: {str(e)}'}), 500
     
-    return jsonify({'message': 'Task updated successfully'}), 200
+    return jsonify({'message': 'Repo updated successfully'}), 200
 
 if __name__ == '__main__':
-
     USERNAME = os.getenv('USERNAME')
     
     createDatabase()

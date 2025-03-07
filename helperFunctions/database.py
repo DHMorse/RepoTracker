@@ -173,3 +173,37 @@ def sortRepoPriorityOrder(username: str):
             fuckingNewOrder += 1
 
         conn.commit()
+
+def sortReposByPriorityOrder(repos: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
+    formattedRepos = []
+    for repo in repos:
+        formattedRepos.append({
+            "repoId": repo[0],
+            "userId": repo[1],
+            "name": repo[2],
+            "priority": repo[3],
+            "priorityOrder": repo[4],
+            "milestone": repo[5],
+            "time": repo[6],
+            "progress": repo[7]
+        })
+    
+    highPriorityRepos: list[dict] = []
+    mediumPriorityRepos: list[dict] = []
+    lowPriorityRepos: list[dict] = []
+    
+    # Sort repos by priority
+    for repo in formattedRepos:
+        match repo["priority"]:
+            case "high":
+                highPriorityRepos.append(repo)
+            case "medium":
+                mediumPriorityRepos.append(repo)
+            case "low":
+                lowPriorityRepos.append(repo)
+    
+    highPriorityRepos.sort(key=lambda x: x["priorityOrder"])
+    mediumPriorityRepos.sort(key=lambda x: x["priorityOrder"])
+    lowPriorityRepos.sort(key=lambda x: x["priorityOrder"])
+
+    return highPriorityRepos, mediumPriorityRepos, lowPriorityRepos

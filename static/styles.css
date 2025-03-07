@@ -66,7 +66,7 @@ body {
     background: linear-gradient(to right, transparent, #66bb6a, transparent);
 }
 
-.task {
+.repo {
     margin-bottom: 30px;
     display: grid;
     grid-template-columns: 150px 1fr;
@@ -74,7 +74,7 @@ body {
     align-items: center;
 }
 
-.task-name {
+.repo-name {
     font-size: 18px;
     color: #eee;
 }
@@ -134,34 +134,34 @@ body {
     margin-left: 10px;
 }
 
-.no-tasks {
+.no-repos {
     text-align: center;
     color: #999;
     font-style: italic;
     padding: 20px;
 }
 
-.task {
+.repo {
     margin-bottom: 30px;
     display: grid;
     grid-template-columns: auto 150px 1fr;
     gap: 15px;
     align-items: center;
     position: relative;
-    padding: 10px;  /* Added padding around the task container */
+    padding: 10px;  /* Added padding around the repo container */
     padding-right: 40px;  /* Extra padding on the right for the edit button */
     border-radius: 8px;
     background-color: #2a2a2a;  /* Slightly lighter background for better definition */
     border: 1px solid #333;
 }
 
-.task-controls {
+.repo-controls {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-.task-button {
+.repo-button {
     background-color: #333;
     border: 1px solid #444;
     color: #ccc;
@@ -175,7 +175,7 @@ body {
     transition: background-color 0.2s, color 0.2s;
 }
 
-.task-button:hover {
+.repo-button:hover {
     background-color: #444;
     color: #fff;
 }
@@ -188,10 +188,10 @@ body {
     color: #ff5252;
 }
 
-.edit-task-button {
+.edit-repo-button {
     position: absolute;
-    top: 10px;  /* Adjusted to match task padding */
-    right: 10px;  /* Adjusted to match task padding */
+    top: 10px;  /* Adjusted to match repo padding */
+    right: 10px;  /* Adjusted to match repo padding */
     background-color: #333;
     border: 1px solid #444;
     color: #ccc;
@@ -206,12 +206,12 @@ body {
     z-index: 1;  /* Ensure button stays on top */
 }
 
-.edit-task-button:hover {
+.edit-repo-button:hover {
     background-color: #444;
     color: #fff;
 }
 
-.task-name {
+.repo-name {
     font-size: 18px;
     color: #eee;
     padding-right: 40px;  /* Ensure text doesn't overlap with edit button */
@@ -227,8 +227,8 @@ body {
 
 /* Added styles for the modal */
 
-/* Edit Task Modal Styles */
-.edit-task-modal {
+/* Edit Repo Modal Styles */
+.edit-repo-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -241,7 +241,7 @@ body {
     z-index: 1000;
 }
 
-.edit-task-modal-content {
+.edit-repo-modal-content {
     background-color: #2a2a2a;
     border-radius: 8px;
     padding: 20px;
@@ -250,7 +250,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.edit-task-modal-content h3 {
+.edit-repo-modal-content h3 {
     margin-top: 0;
     margin-bottom: 20px;
     color: #fff;
@@ -316,29 +316,29 @@ body {
     font-weight: bold;
 }
 
-#save-task-button {
+#save-repo-button {
     background-color: #4CAF50;
     color: white;
 }
 
-#cancel-task-button {
+#cancel-repo-button {
     background-color: #555;
     color: white;
 }
 
-#save-task-button:hover {
+#save-repo-button:hover {
     background-color: #45a049;
 }
 
-#cancel-task-button:hover {
+#cancel-repo-button:hover {
     background-color: #666;
 }
 
-.task {
+.repo {
     position: relative;
 }
 
-.edit-task-button {
+.edit-repo-button {
     position: absolute;
     top: 0;
     right: 0;
@@ -355,7 +355,7 @@ body {
     transition: background-color 0.2s, color 0.2s;
 }
 
-.edit-task-button:hover {
+.edit-repo-button:hover {
     background-color: #444;
     color: #fff;
 }

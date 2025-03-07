@@ -3,7 +3,7 @@ declare global {
     interface Window {
         handleMoveUp: (event: Event) => void;
         handleMoveDown: (event: Event) => void;
-        handleEditTask: (event: Event) => void;
+        handleEditRepo: (event: Event) => void;
     }
 }
 
@@ -11,69 +11,69 @@ declare global {
 export {};
 
 /**
- * Handle moving a task up in priority order
+ * Handle moving a repo up in priority order
  */
 function handleMoveUp(event: Event): void {
     const button = event.currentTarget as HTMLButtonElement;
-    const taskElement = button.closest('.task') as HTMLElement;
+    const repoElement = button.closest('.repo') as HTMLElement;
     
-    if (!taskElement) return;
+    if (!repoElement) return;
     
-    const taskId = taskElement.dataset.taskId;
-    const previousTask = taskElement.previousElementSibling as HTMLElement;
+    const repoId = repoElement.dataset.repoId;
+    const previousRepo = repoElement.previousElementSibling as HTMLElement;
     
-    // If there's no previous task (already at top) or if previous element is not a task, do nothing
-    if (!previousTask || !previousTask.classList.contains('task')) return;
+    // If there's no previous repo (already at top) or if previous element is not a repo, do nothing
+    if (!previousRepo || !previousRepo.classList.contains('repo')) return;
     
-    const previousTaskId = previousTask.dataset.taskId;
-    const previousTaskOrder = getTaskOrder(previousTask);
-    const currentTaskOrder = getTaskOrder(taskElement);
+    const previousRepoId = previousRepo.dataset.repoId;
+    const previousRepoOrder = getRepoOrder(previousRepo);
+    const currentRepoOrder = getRepoOrder(repoElement);
     
     // Swap the visual order
-    taskElement.parentNode?.insertBefore(taskElement, previousTask);
+    repoElement.parentNode?.insertBefore(repoElement, previousRepo);
     
-    // Send API requests to update both tasks
-    updateTaskOrder(taskId, previousTaskOrder);
-    updateTaskOrder(previousTaskId, currentTaskOrder);
+    // Send API requests to update both repos
+    updateRepoOrder(repoId, previousRepoOrder);
+    updateRepoOrder(previousRepoId, currentRepoOrder);
 }
 
 /**
- * Handle moving a task down in priority order
+ * Handle moving a repo down in priority order
  */
 function handleMoveDown(event: Event): void {
     const button = event.currentTarget as HTMLButtonElement;
-    const taskElement = button.closest('.task') as HTMLElement;
+    const repoElement = button.closest('.repo') as HTMLElement;
     
-    if (!taskElement) return;
+    if (!repoElement) return;
     
-    const taskId = taskElement.dataset.taskId;
-    const nextTask = taskElement.nextElementSibling as HTMLElement;
+    const repoId = repoElement.dataset.repoId;
+    const nextRepo = repoElement.nextElementSibling as HTMLElement;
     
-    // If there's no next task (already at bottom) or if next element is not a task, do nothing
-    if (!nextTask || !nextTask.classList.contains('task')) return;
+    // If there's no next repo (already at bottom) or if next element is not a repo, do nothing
+    if (!nextRepo || !nextRepo.classList.contains('repo')) return;
     
-    const nextTaskId = nextTask.dataset.taskId;
-    const nextTaskOrder = getTaskOrder(nextTask);
-    const currentTaskOrder = getTaskOrder(taskElement);
+    const nextRepoId = nextRepo.dataset.repoId;
+    const nextRepoOrder = getRepoOrder(nextRepo);
+    const currentRepoOrder = getRepoOrder(repoElement);
     
     // Swap the visual order
-    taskElement.parentNode?.insertBefore(nextTask, taskElement);
+    repoElement.parentNode?.insertBefore(nextRepo, repoElement);
     
-    // Send API requests to update both tasks
-    updateTaskOrder(taskId, nextTaskOrder);
-    updateTaskOrder(nextTaskId, currentTaskOrder);
+    // Send API requests to update both repos
+    updateRepoOrder(repoId, nextRepoOrder);
+    updateRepoOrder(nextRepoId, currentRepoOrder);
 }
 
 /**
- * Get the priority order of a task element
+ * Get the priority order of a repo element
  * This is an estimate based on position in the DOM
  */
-function getTaskOrder(taskElement: HTMLElement): number {
+function getRepoOrder(repoElement: HTMLElement): number {
     let position = 0;
-    let element = taskElement;
+    let element = repoElement;
     
     while (element.previousElementSibling) {
-        if (element.previousElementSibling.classList.contains('task')) {
+        if (element.previousElementSibling.classList.contains('repo')) {
             position++;
         }
         element = element.previousElementSibling as HTMLElement;
@@ -83,12 +83,12 @@ function getTaskOrder(taskElement: HTMLElement): number {
 }
 
 /**
- * Send API request to update a task's priority order
+ * Send API request to update a repo's priority order
  */
-function updateTaskOrder(repoId: string | undefined, priorityOrder: number): void {
+function updateRepoOrder(repoId: string | undefined, priorityOrder: number): void {
     if (!repoId) return;
     
-    fetch('/api/tasks/reorder', {
+    fetch('/api/repos/reorder', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ function updateTaskOrder(repoId: string | undefined, priorityOrder: number): voi
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Failed to update task order');
+            throw new Error('Failed to update repo order');
         }
         return response.json();
     })
@@ -112,25 +112,25 @@ function updateTaskOrder(repoId: string | undefined, priorityOrder: number): voi
     });
 }
 
-function handleEditTask(event: Event): void {
+function handleEditRepo(event: Event): void {
     const button = event.currentTarget as HTMLButtonElement;
-    const taskElement = button.closest('.task') as HTMLElement;
+    const repoElement = button.closest('.repo') as HTMLElement;
     
-    if (!taskElement) return;
+    if (!repoElement) return;
     
-    // Get current task data
-    const taskId = taskElement.dataset.taskId;
-    const taskName = taskElement.querySelector('.task-name')?.textContent || '';
+    // Get current repo data
+    const repoId = repoElement.dataset.repoId;
+    const repoName = repoElement.querySelector('.repo-name')?.textContent || '';
     const progressValue = parseInt(
-        taskElement.querySelector('.progress')?.getAttribute('style')?.match(/width:\s*(\d+)%/)?.[ 1 ] || '0'
+        repoElement.querySelector('.progress')?.getAttribute('style')?.match(/width:\s*(\d+)%/)?.[ 1 ] || '0'
     );
-    const milestone = taskElement.querySelector('.next-milestone')?.textContent?.replace('Next milestone: ', '') || '';
-    const timeRequired = taskElement.querySelector('.time-required')?.textContent?.replace('- Time required: ', '') || '';
+    const milestone = repoElement.querySelector('.next-milestone')?.textContent?.replace('Next milestone: ', '') || '';
+    const timeRequired = repoElement.querySelector('.time-required')?.textContent?.replace('- Time required: ', '') || '';
     
     // Create the edit modal
-    createEditTaskModal(taskElement, {
-        id: taskId || '',
-        name: taskName,
+    createEditRepoModal(repoElement, {
+        id: repoId || '',
+        name: repoName,
         progress: progressValue,
         milestone,
         timeRequired
@@ -139,9 +139,9 @@ function handleEditTask(event: Event): void {
 
 
 /**
- * Create and display the edit task modal
+ * Create and display the edit repo modal
  */
-interface TaskData {
+interface RepoData {
     id: string;
     name: string;
     progress: number;
@@ -149,15 +149,15 @@ interface TaskData {
     timeRequired: string;
 }
 
-function createEditTaskModal(taskElement: HTMLElement, taskData: TaskData): void {
+function createEditRepoModal(repoElement: HTMLElement, repoData: RepoData): void {
     // Check if a modal is already open and remove it
-    const existingModal = document.querySelector('.edit-task-modal');
+    const existingModal = document.querySelector('.edit-repo-modal');
     if (existingModal) {
         existingModal.remove();
     }
     
     // Determine current priority based on parent section
-    const section = taskElement.closest('.section');
+    const section = repoElement.closest('.section');
     const sectionTitle = section?.querySelector('.section-title');
     let currentPriority = 'medium';
     
@@ -169,16 +169,16 @@ function createEditTaskModal(taskElement: HTMLElement, taskData: TaskData): void
     
     // Create modal container
     const modalContainer = document.createElement('div');
-    modalContainer.className = 'edit-task-modal';
+    modalContainer.className = 'edit-repo-modal';
     
     // Create modal content
     modalContainer.innerHTML = `
-        <div class="edit-task-modal-content">
-            <h3>Edit Task: ${taskData.name}</h3>
+        <div class="edit-repo-modal-content">
+            <h3>Edit Repo: ${repoData.name}</h3>
             
             <div class="form-group">
-                <label for="task-priority">Priority:</label>
-                <select id="task-priority">
+                <label for="repo-priority">Priority:</label>
+                <select id="repo-priority">
                     <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>High Priority</option>
                     <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>Medium Priority</option>
                     <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>Low Priority</option>
@@ -186,27 +186,27 @@ function createEditTaskModal(taskElement: HTMLElement, taskData: TaskData): void
             </div>
             
             <div class="form-group">
-                <label for="task-progress">Progress:</label>
+                <label for="repo-progress">Progress:</label>
                 <div class="progress-input-group">
-                    <input type="range" id="task-progress-slider" min="0" max="100" value="${taskData.progress}" class="progress-slider">
-                    <input type="number" id="task-progress-number" min="0" max="100" value="${taskData.progress}" class="progress-number">
+                    <input type="range" id="repo-progress-slider" min="0" max="100" value="${repoData.progress}" class="progress-slider">
+                    <input type="number" id="repo-progress-number" min="0" max="100" value="${repoData.progress}" class="progress-number">
                     <span class="progress-percent">%</span>
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="task-milestone">Next Milestone:</label>
-                <input type="text" id="task-milestone" value="${taskData.milestone}">
+                <label for="repo-milestone">Next Milestone:</label>
+                <input type="text" id="repo-milestone" value="${repoData.milestone}">
             </div>
             
             <div class="form-group">
-                <label for="task-time">Time Required:</label>
-                <input type="text" id="task-time" value="${taskData.timeRequired}">
+                <label for="repo-time">Time Required:</label>
+                <input type="text" id="repo-time" value="${repoData.timeRequired}">
             </div>
             
             <div class="button-group">
-                <button id="save-task-button">Save</button>
-                <button id="cancel-task-button">Cancel</button>
+                <button id="save-repo-button">Save</button>
+                <button id="cancel-repo-button">Cancel</button>
             </div>
         </div>
     `;
@@ -215,16 +215,16 @@ function createEditTaskModal(taskElement: HTMLElement, taskData: TaskData): void
     document.body.appendChild(modalContainer);
     
     // Add event listeners to the form controls
-    setupModalEventListeners(modalContainer, taskData.id);
+    setupModalEventListeners(modalContainer, repoData.id);
 }
 
 /**
  * Setup event listeners for the modal form
  */
-function setupModalEventListeners(modalContainer: HTMLElement, taskId: string): void {
+function setupModalEventListeners(modalContainer: HTMLElement, repoId: string): void {
     // Sync the progress slider and number input
-    const progressSlider = modalContainer.querySelector('#task-progress-slider') as HTMLInputElement;
-    const progressNumber = modalContainer.querySelector('#task-progress-number') as HTMLInputElement;
+    const progressSlider = modalContainer.querySelector('#repo-progress-slider') as HTMLInputElement;
+    const progressNumber = modalContainer.querySelector('#repo-progress-number') as HTMLInputElement;
     
     progressSlider.addEventListener('input', () => {
         progressNumber.value = progressSlider.value;
@@ -241,21 +241,21 @@ function setupModalEventListeners(modalContainer: HTMLElement, taskId: string): 
     });
     
     // Close modal on cancel
-    const cancelButton = modalContainer.querySelector('#cancel-task-button');
+    const cancelButton = modalContainer.querySelector('#cancel-repo-button');
     cancelButton?.addEventListener('click', () => {
         modalContainer.remove();
     });
     
     // Save changes on save button click
-    const saveButton = modalContainer.querySelector('#save-task-button');
+    const saveButton = modalContainer.querySelector('#save-repo-button');
     saveButton?.addEventListener('click', () => {
-        const priority = (modalContainer.querySelector('#task-priority') as HTMLSelectElement).value;
-        const progress = parseInt((modalContainer.querySelector('#task-progress-number') as HTMLInputElement).value);
-        const milestone = (modalContainer.querySelector('#task-milestone') as HTMLInputElement).value;
-        const timeRequired = (modalContainer.querySelector('#task-time') as HTMLInputElement).value;
+        const priority = (modalContainer.querySelector('#repo-priority') as HTMLSelectElement).value;
+        const progress = parseInt((modalContainer.querySelector('#repo-progress-number') as HTMLInputElement).value);
+        const milestone = (modalContainer.querySelector('#repo-milestone') as HTMLInputElement).value;
+        const timeRequired = (modalContainer.querySelector('#repo-time') as HTMLInputElement).value;
         
         // Call function to save the changes
-        saveTaskChanges(taskId, {
+        saveRepoChanges(repoId, {
             priority,
             progress,
             milestone,
@@ -268,51 +268,51 @@ function setupModalEventListeners(modalContainer: HTMLElement, taskId: string): 
 }
 
 /**
- * Save the task changes via API
+ * Save the repo changes via API
  */
-interface TaskChanges {
+interface RepoChanges {
     priority: string;
     progress: number;
     milestone: string;
     timeRequired: string;
 }
-function saveTaskChanges(taskId: string, changes: TaskChanges): void {
-    // Check if taskId exists
-    if (!taskId || taskId === 'undefined' || taskId === 'null') {
-        console.error('Invalid task ID:', taskId);
-        alert('Cannot update task: Invalid task ID');
+function saveRepoChanges(repoId: string, changes: RepoChanges): void {
+    // Check if repoId exists
+    if (!repoId || repoId === 'undefined' || repoId === 'null') {
+        console.error('Invalid repo ID:', repoId);
+        alert('Cannot update repo: Invalid repo ID');
         return;
     }
     
     // Create a promise to handle both real and mock API paths
     const updatePromise = new Promise<void>((resolve, reject) => {
         // Check if API endpoint exists by sending a preflight request
-        fetch('/api/tasks/update', { method: 'OPTIONS' })
+        fetch('/api/repos/update', { method: 'OPTIONS' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('API endpoint not available');
                 }
                 
                 // If the preflight check passed, send the real API request
-                return fetch('/api/tasks/update', {
+                return fetch('/api/repos/update', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        taskId: parseInt(taskId),
+                        repoId: parseInt(repoId),
                         ...changes
                     })
                 });
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Failed to update task');
+                    throw new Error('Failed to update repo');
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Task updated successfully:', data);
+                console.log('Repo updated successfully:', data);
                 resolve();
             })
             .catch(error => {
@@ -321,18 +321,18 @@ function saveTaskChanges(taskId: string, changes: TaskChanges): void {
                     console.warn('API endpoint not found. Using mock response for development.');
                     
                     // Show the changes that would be sent
-                    console.log('Task update data:', {
-                        taskId: parseInt(taskId),
+                    console.log('Repo update data:', {
+                        repoId: parseInt(repoId),
                         ...changes
                     });
                     
                     // Simulate successful update
                     setTimeout(() => {
-                        console.log('Task updated successfully (mock)');
+                        console.log('Repo updated successfully (mock)');
                         resolve();
                     }, 500);
                 } else {
-                    console.error('Error updating task:', error);
+                    console.error('Error updating repo:', error);
                     reject(error);
                 }
             });
@@ -341,18 +341,18 @@ function saveTaskChanges(taskId: string, changes: TaskChanges): void {
     // Handle the update promise result
     updatePromise
         .then(() => {
-            // Refresh the page to show updated task data
+            // Refresh the page to show updated repo data
             window.location.reload();
         })
         .catch(error => {
-            alert('Failed to update task. Please try again.');
+            alert('Failed to update repo. Please try again.');
         });
 }
 
 // Assign functions to window object to make them accessible from HTML
 window.handleMoveUp = handleMoveUp;
 window.handleMoveDown = handleMoveDown;
-window.handleEditTask = handleEditTask;
+window.handleEditRepo = handleEditRepo;
 
 // We still need the DOMContentLoaded event for any initialization that should happen
 // when the page loads, but not for setting up event handlers for the buttons
