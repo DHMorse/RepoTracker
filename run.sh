@@ -31,6 +31,9 @@ EOF
     exit 1
 fi
 
+# If the data directory doesn't exist, create it
+mkdir -p data
+
 # Function to check python version
 check_python() {
     info "Checking Python version..."

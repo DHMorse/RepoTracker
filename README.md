@@ -24,10 +24,10 @@ A task prioritization and project management tool that integrates with your GitH
    cd refactored-goggles
    ```
 
-2. Create a `.env` file in the root directory:
+2. Edit the a `.env` file in the root directory:
    ```ini
-   USERNAME=your_github_username
-   DATABASE_PATH=./data/repos.db
+   USERNAME=YOUR_GITHUB_USERNAME
+   DATABASE_PATH=./data/database.db
    ```
 
 3. Run the setup script:
