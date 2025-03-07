@@ -20,7 +20,7 @@ A task prioritization and project management tool that integrates with your GitH
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/refactored-goggles.git
+   git clone https://github.com/DHMorse/refactored-goggles.git
    cd refactored-goggles
    ```
 

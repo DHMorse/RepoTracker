@@ -76,7 +76,7 @@ setup_venv() {
     
     # Check if venv exists
     if [ ! -d ".venv" ]; then
-        python3 -m venv venv
+        python3 -m venv .venv
     fi
     
     # Activate virtual environment
