@@ -7,7 +7,7 @@ import requests
 from flask import request, jsonify
 
 
-from helperFunctions.database import createDatabase, insertUser, updateRepo, removeRepo, sortRepoPriorityOrder
+from helperFunctions.database import createDatabase, insertUser, updateRepo, removeRepo
 from flask import redirect
 
 # Init app
@@ -27,12 +27,17 @@ def getUserReposNames(username: str) -> list[str]:
     
     repoList = []
     
-    for repo in repos:
-        if ignoreList and repo['name'].lower().strip() in ignoreList:
-            removeRepo(repo['name'])
-            continue
-        repoList.append(repo['name'])
-
+    # Check if repos is a list (valid response) before processing
+    if isinstance(repos, list):
+        for repo in repos:
+            if isinstance(repo, dict) and 'name' in repo:
+                if ignoreList and repo['name'].lower().strip() in ignoreList:
+                    removeRepo(repo['name'])
+                    continue
+                repoList.append(repo['name'])
+    else:
+        print(f"Error fetching repositories: {repos}")
+    
     return repoList
 
 @app.route('/<path:path>')
@@ -131,6 +136,69 @@ def reorder_task():
     
     return jsonify({'message': 'Task reordered successfully'}), 200
 
+@app.route('/api/tasks/update', methods=['POST'])
+def update_task():
+    task_data = request.json
+    
+    # Validate request data
+    if not task_data or 'taskId' not in task_data:
+        return jsonify({'error': 'Missing required field: taskId'}), 400
+
+    # Extract task data
+    task_id = task_data.get('taskId')
+    priority = task_data.get('priority')
+    progress = task_data.get('progress')
+    milestone = task_data.get('milestone')
+    time_required = task_data.get('timeRequired')
+    
+    # Check if the task exists
+    with sqlite3.connect(DATABASE_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (task_id,))
+        
+        if cursor.fetchone()[0] == 0:
+            return jsonify({'error': 'Task not found'}), 404
+    
+    # Update the task in the database
+    try:
+        with sqlite3.connect(DATABASE_PATH) as conn:
+            cursor = conn.cursor()
+            
+            # Build the update query dynamically based on provided fields
+            update_fields = []
+            update_values = []
+            
+            if priority is not None:
+                update_fields.append('priority = ?')
+                update_values.append(priority)
+                
+            if progress is not None:
+                update_fields.append('progress = ?')
+                update_values.append(progress)
+                
+            if milestone is not None:
+                update_fields.append('nextMilestone = ?')  # Updated column name
+                update_values.append(milestone)
+                
+            if time_required is not None:
+                update_fields.append('timeToNextMilestone = ?')  # Updated column name
+                update_values.append(time_required)
+            
+            if not update_fields:
+                return jsonify({'error': 'No fields to update'}), 400
+            
+            # Construct and execute the update query
+            update_query = f'UPDATE repos SET {", ".join(update_fields)} WHERE repoId = ?'
+            update_values.append(task_id)
+            
+            cursor.execute(update_query, tuple(update_values))
+            conn.commit()
+    
+    except Exception as e:
+        return jsonify({'error': f'Failed to update task: {str(e)}'}), 500
+    
+    return jsonify({'message': 'Task updated successfully'}), 200
+
 if __name__ == '__main__':
 
     USERNAME = os.getenv('USERNAME')
@@ -148,13 +216,15 @@ if __name__ == '__main__':
             cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
             user = cursor.fetchone()
 
+        cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
+        repos = cursor.fetchall()
+
     repoList: list[str] = getUserReposNames(USERNAME)
 
-    
     for repo in repoList:
         with open(".repoignore", "r") as file:
             ignoreList = file.read().lower().strip().splitlines()
-        if not repo in ignoreList:
+        if not repo in ignoreList and not repo in [r[2] for r in repos]:
             updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
 
     app.run(host='0.0.0.0', port=5000, debug=True)

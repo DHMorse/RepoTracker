@@ -140,7 +140,6 @@ body {
     font-style: italic;
     padding: 20px;
 }
-/* Add this to your existing CSS */
 
 .task {
     margin-bottom: 30px;
@@ -149,6 +148,11 @@ body {
     gap: 15px;
     align-items: center;
     position: relative;
+    padding: 10px;  /* Added padding around the task container */
+    padding-right: 40px;  /* Extra padding on the right for the edit button */
+    border-radius: 8px;
+    background-color: #2a2a2a;  /* Slightly lighter background for better definition */
+    border: 1px solid #333;
 }
 
 .task-controls {
@@ -182,4 +186,150 @@ body {
 
 .move-down:hover {
     color: #ff5252;
+}
+
+.edit-task-button {
+    position: absolute;
+    top: 10px;  /* Adjusted to match task padding */
+    right: 10px;  /* Adjusted to match task padding */
+    background-color: #333;
+    border: 1px solid #444;
+    color: #ccc;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+    z-index: 1;  /* Ensure button stays on top */
+}
+
+.edit-task-button:hover {
+    background-color: #444;
+    color: #fff;
+}
+
+.task-name {
+    font-size: 18px;
+    color: #eee;
+    padding-right: 40px;  /* Ensure text doesn't overlap with edit button */
+}
+
+.move-up:hover {
+    color: #66bb6a;
+}
+
+.move-down:hover {
+    color: #ff5252;
+}
+
+/* Added styles for the modal */
+
+/* Edit Task Modal Styles */
+.edit-task-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.edit-task-modal-content {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.edit-task-modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #fff;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #ccc;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group select,
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #fff;
+    font-size: 16px;
+}
+
+.progress-input-group {
+    display: flex;
+    align-items: center;
+}
+
+.progress-slider {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.progress-number {
+    width: 60px !important;
+    text-align: right;
+}
+
+.progress-percent {
+    color: #ccc;
+    margin-left: 4px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.button-group button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#save-task-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#cancel-task-button {
+    background-color: #555;
+    color: white;
+}
+
+#save-task-button:hover {
+    background-color: #45a049;
+}
+
+#cancel-task-button:hover {
+    background-color: #666;
 }

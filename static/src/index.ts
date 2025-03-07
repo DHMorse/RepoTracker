@@ -1,16 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Get all move up and move down buttons
+    // Existing code for move up and move down buttons
     const moveUpButtons = document.querySelectorAll('.move-up');
     const moveDownButtons = document.querySelectorAll('.move-down');
 
-    // Add event listeners to move up buttons
     moveUpButtons.forEach(button => {
         button.addEventListener('click', handleMoveUp);
     });
 
-    // Add event listeners to move down buttons
     moveDownButtons.forEach(button => {
         button.addEventListener('click', handleMoveDown);
+    });
+
+    // Add event listeners to edit task buttons
+    const editTaskButtons = document.querySelectorAll('.edit-task-button');
+    editTaskButtons.forEach(button => {
+        button.addEventListener('click', handleEditTask);
     });
 });
 
@@ -113,5 +117,201 @@ function updateTaskOrder(repoId: string | undefined, priorityOrder: number): voi
     })
     .catch(error => {
         console.error('Error:', error);
+    });
+}
+
+function handleEditTask(event: Event): void {
+    const button = event.currentTarget as HTMLButtonElement;
+    const taskElement = button.closest('.task') as HTMLElement;
+    
+    if (!taskElement) return;
+    
+    // Get current task data
+    const taskId = taskElement.dataset.taskId;
+    const taskName = taskElement.querySelector('.task-name')?.textContent || '';
+    const progressValue = parseInt(
+        taskElement.querySelector('.progress')?.getAttribute('style')?.match(/width:\s*(\d+)%/)?.[ 1 ] || '0'
+    );
+    const milestone = taskElement.querySelector('.next-milestone')?.textContent?.replace('Next milestone: ', '') || '';
+    const timeRequired = taskElement.querySelector('.time-required')?.textContent?.replace('- Time required: ', '') || '';
+    
+    // Create the edit modal
+    createEditTaskModal(taskElement, {
+        id: taskId || '',
+        name: taskName,
+        progress: progressValue,
+        milestone,
+        timeRequired
+    });
+}
+
+
+/**
+ * Create and display the edit task modal
+ */
+interface TaskData {
+    id: string;
+    name: string;
+    progress: number;
+    milestone: string;
+    timeRequired: string;
+}
+
+function createEditTaskModal(taskElement: HTMLElement, taskData: TaskData): void {
+    // Check if a modal is already open and remove it
+    const existingModal = document.querySelector('.edit-task-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Determine current priority based on parent section
+    const section = taskElement.closest('.section');
+    const sectionTitle = section?.querySelector('.section-title');
+    let currentPriority = 'medium';
+    
+    if (sectionTitle?.classList.contains('high-priority-title')) {
+        currentPriority = 'high';
+    } else if (sectionTitle?.classList.contains('low-priority-title')) {
+        currentPriority = 'low';
+    }
+    
+    // Create modal container
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'edit-task-modal';
+    
+    // Create modal content
+    modalContainer.innerHTML = `
+        <div class="edit-task-modal-content">
+            <h3>Edit Task: ${taskData.name}</h3>
+            
+            <div class="form-group">
+                <label for="task-priority">Priority:</label>
+                <select id="task-priority">
+                    <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>High Priority</option>
+                    <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>Medium Priority</option>
+                    <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>Low Priority</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-progress">Progress:</label>
+                <div class="progress-input-group">
+                    <input type="range" id="task-progress-slider" min="0" max="100" value="${taskData.progress}" class="progress-slider">
+                    <input type="number" id="task-progress-number" min="0" max="100" value="${taskData.progress}" class="progress-number">
+                    <span class="progress-percent">%</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-milestone">Next Milestone:</label>
+                <input type="text" id="task-milestone" value="${taskData.milestone}">
+            </div>
+            
+            <div class="form-group">
+                <label for="task-time">Time Required:</label>
+                <input type="text" id="task-time" value="${taskData.timeRequired}">
+            </div>
+            
+            <div class="button-group">
+                <button id="save-task-button">Save</button>
+                <button id="cancel-task-button">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    // Add the modal to the document
+    document.body.appendChild(modalContainer);
+    
+    // Add event listeners to the form controls
+    setupModalEventListeners(modalContainer, taskData.id);
+}
+
+/**
+ * Setup event listeners for the modal form
+ */
+function setupModalEventListeners(modalContainer: HTMLElement, taskId: string): void {
+    // Sync the progress slider and number input
+    const progressSlider = modalContainer.querySelector('#task-progress-slider') as HTMLInputElement;
+    const progressNumber = modalContainer.querySelector('#task-progress-number') as HTMLInputElement;
+    
+    progressSlider.addEventListener('input', () => {
+        progressNumber.value = progressSlider.value;
+    });
+    
+    progressNumber.addEventListener('input', () => {
+        // Ensure value is between 0 and 100
+        let value = parseInt(progressNumber.value);
+        if (isNaN(value)) value = 0;
+        if (value < 0) value = 0;
+        if (value > 100) value = 100;
+        
+        progressSlider.value = value.toString();
+    });
+    
+    // Close modal on cancel
+    const cancelButton = modalContainer.querySelector('#cancel-task-button');
+    cancelButton?.addEventListener('click', () => {
+        modalContainer.remove();
+    });
+    
+    // Save changes on save button click
+    const saveButton = modalContainer.querySelector('#save-task-button');
+    saveButton?.addEventListener('click', () => {
+        const priority = (modalContainer.querySelector('#task-priority') as HTMLSelectElement).value;
+        const progress = parseInt((modalContainer.querySelector('#task-progress-number') as HTMLInputElement).value);
+        const milestone = (modalContainer.querySelector('#task-milestone') as HTMLInputElement).value;
+        const timeRequired = (modalContainer.querySelector('#task-time') as HTMLInputElement).value;
+        
+        // Call function to save the changes
+        saveTaskChanges(taskId, {
+            priority,
+            progress,
+            milestone,
+            timeRequired
+        });
+        
+        // Close the modal
+        modalContainer.remove();
+    });
+}
+
+/**
+ * Save the task changes via API
+ */
+interface TaskChanges {
+    priority: string;
+    progress: number;
+    milestone: string;
+    timeRequired: string;
+}
+
+function saveTaskChanges(taskId: string, changes: TaskChanges): void {
+    // Send API request to update the task
+    fetch('/api/tasks/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            taskId: parseInt(taskId),
+            ...changes
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update task');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Task updated successfully:', data);
+        
+        // Refresh the page to show updated task data
+        // In a real application, you might want to update the DOM directly instead
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error updating task:', error);
+        alert('Failed to update task. Please try again.');
     });
 }
