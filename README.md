@@ -1,11 +1,11 @@
+# RepoTracker
+
 [![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3daabf?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Node.js](https://img.shields.io/badge/Node.js_DevDep-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm_DevDep-CB3837?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript_DevDep-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-
-# RepoTracker
 
 A task prioritization and project management tool that integrates with your GitHub repositories, helping you organize and track progress on your coding projects.
 
