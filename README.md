@@ -61,7 +61,7 @@ A task prioritization and project management tool that integrates with your GitH
 ## 📁 Project Structure
 
 ```
-refactored-goggles/
+repoTracker/
 ├── app.py                 # Main Flask application
 ├── helperFunctions/       # Helper modules
 │   └── database.py        # Database operations
