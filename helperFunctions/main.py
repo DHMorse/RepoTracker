@@ -8,28 +8,36 @@ USERNAME: str = os.getenv('USERNAME')
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
 
 def getUserReposNames(username: str) -> list[str]:
-    ignoreList: list[str] = []
+    """
+    Fetches all repository names for a given GitHub username, handling pagination.
     
-    if os.path.exists(".repoignore"):
-        with open(".repoignore", "r") as file:
-            ignoreList = file.read().lower().strip().splitlines()
-
-    url: str = f"https://api.github.com/users/{username}/repos"
-    response: dict = requests.get(url)
-    repos: dict = response.json()
-    
+    Args:
+        username: GitHub username to fetch repositories for
+        
+    Returns:
+        A list of repository names
+    """
     repoList: list[str] = []
+    page: int = 1
+    per_page: int = 100  # Maximum allowed by GitHub API
     
-    # Check if repos is a list (valid response) before processing
-    if isinstance(repos, list):
-        for repo in repos:
-            if isinstance(repo, dict) and 'name' in repo:
-                if ignoreList and repo['name'].lower().strip() in ignoreList:
-                    removeRepo(repo['name'])
-                    continue
+    while True:
+        url: str = f"https://api.github.com/users/{username}/repos?page={page}&per_page={per_page}"
+        response = requests.get(url)
+        repos = response.json()
+        
+        # Check if repos is a list (valid response) before processing
+        if isinstance(repos, list):
+            if not repos:  # Empty page means we've processed all repos
+                break
+                
+            for repo in repos:
                 repoList.append(repo['name'])
-    else:
-        print(f"Error fetching repositories: {repos}")
+                
+            page += 1  # Move to next page
+        else:
+            print(f"Error fetching repositories: {repos}")
+            break
     
     return repoList
 
