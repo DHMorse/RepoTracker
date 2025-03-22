@@ -1,15 +1,16 @@
-from flask import Flask, jsonify, request, redirect, render_template
+from flask import Flask, jsonify, request, redirect, render_template, send_file
 from dotenv import load_dotenv
 import os
 import sqlite3
 
-from helperFunctions.database import createDatabase, insertUser, updateRepo, sortReposByPriorityOrder
-from helperFunctions.main import getUserReposNames
+from helperFunctions.database import createDatabase, insertUser, updateRepo, sortReposByPriorityOrder, removeRepo
+from helperFunctions.main import getUserReposNames, checkRepos
 
 # Init app
 app = Flask(__name__)
 load_dotenv()
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
+REPOIGNORE_PATH: str = '.repoignore'
 
 @app.route('/<path:path>')
 def catch_all(path):
@@ -142,6 +143,44 @@ def update_repo():
     
     return jsonify({'message': 'Repo updated successfully'}), 200
 
+@app.route('/api/repoignore', methods=['GET'])
+def get_repoignore():
+    try:
+        with open(REPOIGNORE_PATH, 'r') as file:
+            content = file.read()
+        return content
+    except Exception as e:
+        return jsonify({'error': f'Failed to read .repoignore: {str(e)}'}), 500
+
+@app.route('/api/repoignore', methods=['POST'])
+def update_repoignore():
+    try:
+        content = request.get_data(as_text=True)
+        with open(REPOIGNORE_PATH, 'w') as file:
+            file.write(content)
+
+        with sqlite3.connect(DATABASE_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
+            user = cursor.fetchone()
+            
+            if not user:
+                insertUser(USERNAME)
+            
+                cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
+                user = cursor.fetchone()
+
+            cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
+            repos = cursor.fetchall()
+
+        repoList: list[str] = getUserReposNames(USERNAME)
+
+        checkRepos(repoList, repos)
+
+        return jsonify({'message': '.repoignore updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to update .repoignore: {str(e)}'}), 500
+
 if __name__ == '__main__':
     USERNAME = os.getenv('USERNAME')
     
@@ -162,11 +201,6 @@ if __name__ == '__main__':
         repos = cursor.fetchall()
 
     repoList: list[str] = getUserReposNames(USERNAME)
-
-    for repo in repoList:
-        with open(".repoignore", "r") as file:
-            ignoreList = file.read().lower().strip().splitlines()
-        if not repo in ignoreList and not repo in [r[2] for r in repos]:
-            updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
+    checkRepos(repoList, repos)
 
     app.run(host='0.0.0.0', port=5000, debug=True)

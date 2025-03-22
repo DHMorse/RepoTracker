@@ -359,3 +359,100 @@ body {
     background-color: #444;
     color: #fff;
 }
+
+/* Edit .repoignore Button and Modal Styles */
+.edit-repoignore-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #333;
+    border: 1px solid #444;
+    color: #ccc;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+    z-index: 1;
+}
+
+.edit-repoignore-button:hover {
+    background-color: #444;
+    color: #fff;
+}
+
+.edit-repoignore-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.edit-repoignore-modal-content {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.edit-repoignore-modal-content h3 {
+    margin-top: 0;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.edit-repoignore-modal-content textarea {
+    width: 100%;
+    background-color: #333;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    resize: vertical;
+}
+
+.edit-repoignore-modal-content .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.edit-repoignore-modal-content .button-group button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+#save-repoignore-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#cancel-repoignore-button {
+    background-color: #666;
+    color: white;
+}
+
+#save-repoignore-button:hover {
+    background-color: #45a049;
+}
+
+#cancel-repoignore-button:hover {
+    background-color: #555;
+}

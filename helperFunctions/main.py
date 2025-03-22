@@ -1,7 +1,9 @@
 import os 
 import requests
 
-from helperFunctions.database import removeRepo
+from helperFunctions.database import removeRepo, updateRepo
+
+USERNAME: str = os.getenv('USERNAME')
 
 def getUserReposNames(username: str) -> list[str]:
     ignoreList: list[str] = []
@@ -28,3 +30,12 @@ def getUserReposNames(username: str) -> list[str]:
         print(f"Error fetching repositories: {repos}")
     
     return repoList
+
+def checkRepos(repoList: list[str], repos: list[tuple]) -> list[str]:
+    for repo in repoList:
+        with open(".repoignore", "r") as file:
+            ignoreList = file.read().lower().strip().splitlines()
+        if not repo in ignoreList and not repo in [r[2] for r in repos]:
+            updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
+        if repo in ignoreList:
+            removeRepo(repo)

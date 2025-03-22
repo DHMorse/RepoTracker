@@ -280,10 +280,68 @@ function saveRepoChanges(repoId, changes) {
         alert('Failed to update repo. Please try again.');
     });
 }
+/**
+ * Handle opening the .repoignore editor modal
+ */
+function handleEditRepoignore(event) {
+    // Fetch current .repoignore content
+    fetch('/api/repoignore')
+        .then(response => response.text())
+        .then(content => {
+        const modal = document.getElementById('edit-repoignore-modal');
+        const textarea = document.getElementById('repoignore-content');
+        if (modal && textarea) {
+            textarea.value = content;
+            modal.style.display = 'flex';
+        }
+    })
+        .catch(error => {
+        console.error('Error fetching .repoignore content:', error);
+    });
+}
+/**
+ * Handle saving changes to the .repoignore file
+ */
+function handleSaveRepoignore(event) {
+    const textarea = document.getElementById('repoignore-content');
+    if (!textarea)
+        return;
+    const content = textarea.value;
+    fetch('/api/repoignore', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+        body: content
+    })
+        .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to save .repoignore');
+        }
+        handleCancelRepoignore(event);
+        // Reload the page to reflect changes
+        window.location.reload();
+    })
+        .catch(error => {
+        console.error('Error saving .repoignore:', error);
+    });
+}
+/**
+ * Handle closing the .repoignore editor modal
+ */
+function handleCancelRepoignore(event) {
+    const modal = document.getElementById('edit-repoignore-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 // Assign functions to window object to make them accessible from HTML
 window.handleMoveUp = handleMoveUp;
 window.handleMoveDown = handleMoveDown;
 window.handleEditRepo = handleEditRepo;
+window.handleEditRepoignore = handleEditRepoignore;
+window.handleSaveRepoignore = handleSaveRepoignore;
+window.handleCancelRepoignore = handleCancelRepoignore;
 // We still need the DOMContentLoaded event for any initialization that should happen
 // when the page loads, but not for setting up event handlers for the buttons
 document.addEventListener('DOMContentLoaded', () => {
