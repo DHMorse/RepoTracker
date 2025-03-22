@@ -7,10 +7,14 @@ from helperFunctions.database import createDatabase, insertUser, updateRepo, sor
 from helperFunctions.main import getUserReposNames, checkRepos
 
 # Init app
-app = Flask(__name__)
+app: Flask = Flask(__name__)
+
 load_dotenv()
+
+# Environment variables
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
-REPOIGNORE_PATH: str = '.repoignore'
+REPOIGNORE_PATH: str = os.getenv('REPOIGNORE_PATH')
+USERNAME: str = os.getenv('USERNAME')
 
 @app.route('/<path:path>')
 def catch_all(path):
@@ -19,10 +23,15 @@ def catch_all(path):
 @app.route('/')
 def index():
     with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
+        cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute('SELECT * FROM repos')
         repos: list[tuple] = cursor.fetchall()
-    
+
+    highPriorityRepos: list[tuple]
+    mediumPriorityRepos: list[tuple]
+    lowPriorityRepos: list[tuple]
+
+    # Sort the repos by priority order
     highPriorityRepos, mediumPriorityRepos, lowPriorityRepos = sortReposByPriorityOrder(repos)
 
     return render_template('index.html', 
@@ -47,7 +56,7 @@ def reorder_repo():
 
     # Check if the repo exists
     with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
+        cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (repo['repoId'],))
         
         if cursor.fetchone()[0] == 0:
@@ -97,7 +106,7 @@ def update_repo():
     
     # Check if the repo exists
     with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
+        cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute('SELECT COUNT(*) FROM repos WHERE repoId = ?', (repoId,))
         
         if cursor.fetchone()[0] == 0:
@@ -106,7 +115,7 @@ def update_repo():
     # Update the repo in the database
     try:
         with sqlite3.connect(DATABASE_PATH) as conn:
-            cursor = conn.cursor()
+            cursor: sqlite3.Cursor = conn.cursor()
             
             # Build the update query dynamically based on provided fields
             updateFields: list[str] = []
@@ -147,60 +156,28 @@ def update_repo():
 def get_repoignore():
     try:
         with open(REPOIGNORE_PATH, 'r') as file:
-            content = file.read()
+            content: str = file.read()
         return content
+    
     except Exception as e:
         return jsonify({'error': f'Failed to read .repoignore: {str(e)}'}), 500
 
 @app.route('/api/repoignore', methods=['POST'])
 def update_repoignore():
     try:
-        content = request.get_data(as_text=True)
+        content: str = request.get_data(as_text=True)
         with open(REPOIGNORE_PATH, 'w') as file:
             file.write(content)
 
-        with sqlite3.connect(DATABASE_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
-            user = cursor.fetchone()
-            
-            if not user:
-                insertUser(USERNAME)
-            
-                cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
-                user = cursor.fetchone()
-
-            cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
-            repos = cursor.fetchall()
-
-        repoList: list[str] = getUserReposNames(USERNAME)
-
-        checkRepos(repoList, repos)
-
+        checkRepos()
         return jsonify({'message': '.repoignore updated successfully'}), 200
+
     except Exception as e:
         return jsonify({'error': f'Failed to update .repoignore: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    USERNAME = os.getenv('USERNAME')
-    
     createDatabase()
     
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
-        user = cursor.fetchone()
-        
-        if not user:
-            insertUser(USERNAME)
-        
-            cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
-            user = cursor.fetchone()
-
-        cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
-        repos = cursor.fetchall()
-
-    repoList: list[str] = getUserReposNames(USERNAME)
-    checkRepos(repoList, repos)
-
+    checkRepos()
+    
     app.run(host='0.0.0.0', port=5000, debug=True)

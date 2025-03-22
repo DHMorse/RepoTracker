@@ -1,9 +1,11 @@
 import os 
 import requests
+import sqlite3
 
 from helperFunctions.database import removeRepo, updateRepo
 
 USERNAME: str = os.getenv('USERNAME')
+DATABASE_PATH: str = os.getenv('DATABASE_PATH')
 
 def getUserReposNames(username: str) -> list[str]:
     ignoreList: list[str] = []
@@ -31,11 +33,29 @@ def getUserReposNames(username: str) -> list[str]:
     
     return repoList
 
-def checkRepos(repoList: list[str], repos: list[tuple]) -> list[str]:
-    for repo in repoList:
+def checkRepos() -> None:
+    """Adds new repos to the database and removes ignored repos"""
+
+    repoList: list[str] = getUserReposNames(USERNAME)
+
+    ignoreList: list[str] = []
+
+    reposInTheDatabase: list[str] = []
+
+    with sqlite3.connect(DATABASE_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM repos WHERE userId = ?', (USERNAME,))
+        repos = cursor.fetchall()
+
+        for repo in repos:
+            reposInTheDatabase.append(repo[2])
+
+    if os.path.exists(".repoignore"):
         with open(".repoignore", "r") as file:
             ignoreList = file.read().lower().strip().splitlines()
-        if not repo in ignoreList and not repo in [r[2] for r in repos]:
-            updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
+            
+    for repo in repoList:
         if repo in ignoreList:
             removeRepo(repo)
+        elif repo not in reposInTheDatabase:
+            updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
