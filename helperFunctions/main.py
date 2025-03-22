@@ -42,14 +42,26 @@ def getUserReposNames(username: str) -> list[str]:
     return repoList
 
 def checkRepos() -> None:
-    """Adds new repos to the database and removes ignored repos"""
-
+    """
+    Adds new repos to the database, removes ignored repos, and handles repositories that no longer exist.
+    
+    This function:
+    1. Fetches current GitHub repositories
+    2. Gets repositories from the local database
+    3. Processes the .repoignore file
+    4. Removes ignored repositories
+    5. Adds new repositories
+    6. Removes repositories that no longer exist on GitHub
+    """
     githubRepoNameList: list[str] = getUserReposNames(USERNAME)
-
     repoIgnoreList: list[str] = []
-
     reposInTheDatabase: list[str] = []
 
+    # Load ignore list first
+    if os.path.exists(".repoignore"):
+        with open(".repoignore", "r") as file:
+            repoIgnoreList = [name.lower().strip() for name in file.read().splitlines() if name.strip()]
+    
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
 
@@ -67,15 +79,25 @@ def checkRepos() -> None:
 
         for repo in repos:
             reposInTheDatabase.append(repo[2])
-
-    if os.path.exists(".repoignore"):
-        with open(".repoignore", "r") as file:
-            repoIgnoreList = file.read().lower().strip().splitlines()
+    
+    # First, handle ignored repositories (remove them from database regardless of GitHub status)
+    for repoName in reposInTheDatabase:
+        if repoName.lower() in repoIgnoreList:
+            removeRepo(repoName)
+            # Also remove from our tracking list to avoid further processing
+            reposInTheDatabase = [r for r in reposInTheDatabase if r != repoName]
+    
+    # Now handle the remaining repositories
+    for githubRepoName in githubRepoNameList:
+        # Skip if the repo is in the ignore list
+        if githubRepoName.lower() in repoIgnoreList:
+            continue
             
-    for githubRepoName in githubRepoNameList + reposInTheDatabase:
-        if githubRepoName in repoIgnoreList:
-            removeRepo(githubRepoName)
-        elif githubRepoName not in reposInTheDatabase and githubRepoName in githubRepoNameList:
+        # Add new repositories that aren't ignored
+        if githubRepoName not in reposInTheDatabase:
             updateRepo(USERNAME, githubRepoName, 'high', 0, 'N/A', 0, 0)
-        elif githubRepoName in reposInTheDatabase and githubRepoName not in githubRepoNameList:
-            removeRepo(githubRepoName)
+    
+    # Remove repositories that no longer exist on GitHub
+    for dbRepoName in reposInTheDatabase:
+        if dbRepoName not in githubRepoNameList:
+            removeRepo(dbRepoName)
