@@ -2,7 +2,7 @@ import os
 import requests
 import sqlite3
 
-from helperFunctions.database import removeRepo, updateRepo
+from helperFunctions.database import removeRepo, updateRepo, insertUser
 
 USERNAME: str = os.getenv('USERNAME')
 DATABASE_PATH: str = os.getenv('DATABASE_PATH')
@@ -36,15 +36,25 @@ def getUserReposNames(username: str) -> list[str]:
 def checkRepos() -> None:
     """Adds new repos to the database and removes ignored repos"""
 
-    repoList: list[str] = getUserReposNames(USERNAME)
+    githubRepoNameList: list[str] = getUserReposNames(USERNAME)
 
-    ignoreList: list[str] = []
+    repoIgnoreList: list[str] = []
 
     reposInTheDatabase: list[str] = []
 
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM repos WHERE userId = ?', (USERNAME,))
+
+        cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
+        user: tuple | None = cursor.fetchone()
+
+        if not user:
+            insertUser(USERNAME)
+
+        cursor.execute('SELECT * FROM users WHERE name = ?', (USERNAME,))
+        user: tuple | None = cursor.fetchone()
+
+        cursor.execute('SELECT * FROM repos WHERE userId = ?', (user[0],))
         repos = cursor.fetchall()
 
         for repo in repos:
@@ -52,10 +62,10 @@ def checkRepos() -> None:
 
     if os.path.exists(".repoignore"):
         with open(".repoignore", "r") as file:
-            ignoreList = file.read().lower().strip().splitlines()
+            repoIgnoreList = file.read().lower().strip().splitlines()
             
-    for repo in repoList:
-        if repo in ignoreList:
-            removeRepo(repo)
-        elif repo not in reposInTheDatabase:
-            updateRepo(USERNAME, repo, 'high', 0, 'N/A', 0, 0)
+    for githubRepoName in githubRepoNameList:
+        if githubRepoName in repoIgnoreList:
+            removeRepo(githubRepoName)
+        elif githubRepoName not in reposInTheDatabase:
+            updateRepo(USERNAME, githubRepoName, 'high', 0, 'N/A', 0, 0)
