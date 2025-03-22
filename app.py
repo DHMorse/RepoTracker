@@ -175,6 +175,11 @@ def update_repoignore():
     except Exception as e:
         return jsonify({'error': f'Failed to update .repoignore: {str(e)}'}), 500
 
+@app.route('/api/repos/refresh', methods=['POST'])
+def refresh_repos():
+    checkRepos()
+    return jsonify({'message': 'Repos refreshed successfully'}), 200
+
 if __name__ == '__main__':
     createDatabase()
 

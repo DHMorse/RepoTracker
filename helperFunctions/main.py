@@ -64,8 +64,10 @@ def checkRepos() -> None:
         with open(".repoignore", "r") as file:
             repoIgnoreList = file.read().lower().strip().splitlines()
             
-    for githubRepoName in githubRepoNameList:
+    for githubRepoName in githubRepoNameList + reposInTheDatabase:
         if githubRepoName in repoIgnoreList:
             removeRepo(githubRepoName)
-        elif githubRepoName not in reposInTheDatabase:
+        elif githubRepoName not in reposInTheDatabase and githubRepoName in githubRepoNameList:
             updateRepo(USERNAME, githubRepoName, 'high', 0, 'N/A', 0, 0)
+        elif githubRepoName in reposInTheDatabase and githubRepoName not in githubRepoNameList:
+            removeRepo(githubRepoName)

@@ -7,6 +7,7 @@ declare global {
         handleEditRepoignore: (event: Event) => void;
         handleSaveRepoignore: (event: Event) => void;
         handleCancelRepoignore: (event: Event) => void;
+        handleRefreshRepos: (event: Event) => void;
     }
 }
 
@@ -411,6 +412,52 @@ function handleCancelRepoignore(event: Event): void {
     }
 }
 
+/**
+ * Handle refreshing the repos
+ */
+function handleRefreshRepos(event: Event): void {
+    // Create a loading animation on the button
+    const button = event.currentTarget as HTMLButtonElement;
+    if (button) {
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.classList.add('fa-spin');
+        }
+        button.disabled = true;
+    }
+
+    // Call the refresh API endpoint
+    fetch('/api/repos/refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to refresh repos');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        // Reload the page to show updated repo data
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Remove the animation and re-enable the button
+        if (button) {
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-spin');
+            }
+            button.disabled = false;
+        }
+        alert('Failed to refresh repos. Please try again.');
+    });
+}
+
 // Assign functions to window object to make them accessible from HTML
 window.handleMoveUp = handleMoveUp;
 window.handleMoveDown = handleMoveDown;
@@ -418,6 +465,7 @@ window.handleEditRepo = handleEditRepo;
 window.handleEditRepoignore = handleEditRepoignore;
 window.handleSaveRepoignore = handleSaveRepoignore;
 window.handleCancelRepoignore = handleCancelRepoignore;
+window.handleRefreshRepos = handleRefreshRepos;
 
 // We still need the DOMContentLoaded event for any initialization that should happen
 // when the page loads, but not for setting up event handlers for the buttons
