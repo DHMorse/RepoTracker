@@ -26,6 +26,10 @@ if [ ! -f .env ]; then
 USERNAME=your_github_username
 # Database path
 DATABASE_PATH=./data/repos.db
+# Repoignore path
+REPOIGNORE_PATH=.repoignore
+# Environment path
+ENV_PATH=.env
 EOF
     info "Please edit the .env file with your actual GitHub username."
     exit 1
