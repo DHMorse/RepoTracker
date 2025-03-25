@@ -6,6 +6,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js_DevDep-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm_DevDep-CB3837?style=flat&logo=npm&logoColor=white)](https://www.npmjs.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript_DevDep-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![uv](https://img.shields.io/badge/uv-FFE873?style=flat&logo=python&logoColor=black)](https://github.com/astral-sh/uv)
 
 A task prioritization and project management tool that integrates with your GitHub repositories, helping you organize and track progress on your coding projects.
 
@@ -19,9 +20,10 @@ A task prioritization and project management tool that integrates with your GitH
 
 ## 📋 Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - Node.js and npm
 - SQLite3
+- uv (recommended for faster dependency management)
 
 ## 🔧 Installation
 
@@ -31,10 +33,12 @@ A task prioritization and project management tool that integrates with your GitH
     cd RepoTracker
     ```
 
-2. Edit the a `.env` file in the root directory:
+2. Edit the `.env` file in the root directory:
     ```ini
     USERNAME=YOUR_GITHUB_USERNAME
     DATABASE_PATH=./data/database.db
+    REPOIGNORE_PATH=./.repoignore
+    ENV_PATH=./.venv
     ```
 
 ## 🖥️ Usage
@@ -62,18 +66,23 @@ A task prioritization and project management tool that integrates with your GitH
 
 ```
 repoTracker/
-├── app.py                 # Main Flask application
-├── helperFunctions/       # Helper modules
-│   └── database.py        # Database operations
-├── static/                # Static assets
-│   ├── dist/              # Compiled TypeScript
-│   ├── src/               # TypeScript source
-│   └── styles.css         # CSS styles
-├── templates/             # HTML templates
-│   └── index.html         # Main page template
-├── run.sh                 # Setup and run script
-├── requirements.txt       # Python dependencies
-└── package.json           # Node.js dependencies
+├── src/                   # Source code directory
+│   ├── app.py            # Main Flask application
+│   ├── helperFunctions/  # Helper modules
+│   │   ├── database.py   # Database operations
+│   │   └── main.py       # Main helper functions
+│   ├── static/           # Static assets
+│   │   ├── dist/        # Compiled TypeScript
+│   │   ├── src/         # TypeScript source
+│   │   └── styles.css   # CSS styles
+│   └── templates/        # HTML templates
+│       └── index.html    # Main page template
+├── .python-version       # Python version specification
+├── pyproject.toml        # Project dependencies and metadata
+├── uv.lock              # uv dependency lock file
+├── run.sh               # Setup and run script
+├── run.bat              # Windows setup and run script
+└── package.json         # Node.js dependencies
 ```
 
 ## ⚙️ Configuration
