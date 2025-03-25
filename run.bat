@@ -198,7 +198,7 @@ goto :eof
 if "%SKIP_NODE_STEPS%"=="true" (
     call :info "Skipping Node.js setup (not installed)"
     :: Check if the compiled JavaScript exists
-    if not exist "static\dist\index.js" (
+    if not exist "src/static/dist\index.js" (
         call :error "Compiled JavaScript not found and Node.js not available to build it"
         call :error "Please install Node.js or add the compiled JavaScript files"
         exit /b 1
