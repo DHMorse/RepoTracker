@@ -81,17 +81,39 @@ check_node() {
 setup_venv() {
     info "Setting up Python virtual environment..."
     
+    # Get Python version from .python-version file
+    PYTHON_VERSION=$(cat .python-version | tr -d ' \n')
+    
     # Check if venv exists
     if [ ! -d ".venv" ]; then
-        python3 -m venv .venv
+        # Check if uv is installed
+        if command -v uv &>/dev/null; then
+            info "Using uv to create virtual environment..."
+            uv venv -p "python${PYTHON_VERSION}" .venv
+        else
+            info "Using venv module to create virtual environment..."
+            python3 -m venv .venv
+        fi
     fi
     
     # Activate virtual environment
     source .venv/bin/activate
     
-    # Install Python dependencies
-    info "Installing Python dependencies..."
-    pip install -q -r requirements.txt
+    # Check if uv is installed
+    if command -v uv &>/dev/null; then
+        info "Using uv for package installation..."
+        # Use uv to install dependencies from pyproject.toml
+        uv pip install -q -r pyproject.toml
+    else
+        warning "uv not found. Using pip instead. Consider installing uv for faster package installation."
+        # Fallback to pip with requirements.txt if it exists
+        if [ -f "requirements.txt" ]; then
+            pip install -q -r requirements.txt
+        else
+            # If no requirements.txt, install from pyproject.toml
+            pip install -q -r pyproject.toml
+        fi
+    fi
     
     success "Python environment set up successfully"
 }
@@ -143,7 +165,7 @@ build_typescript() {
 # Function to start the application
 run_app() {
     info "Starting application..."
-    python app.py
+    python src/app.py
 }
 
 # Main execution

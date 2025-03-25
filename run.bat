@@ -21,6 +21,10 @@ if not exist .env (
         echo USERNAME=your_github_username
         echo # Database path
         echo DATABASE_PATH=./data/repos.db
+        echo # Repoignore path
+        echo REPOIGNORE_PATH=.repoignore
+        echo # Environment path
+        echo ENV_PATH=.env
     ) > .env
     call :info "Please edit the .env file with your actual GitHub username."
     exit /b 1
@@ -88,7 +92,7 @@ goto :eof
 
 :check_python
 call :info "Checking Python version..."
-:: Check if Python 3.8+ is installed
+:: Check if Python 3.10+ is installed
 python --version >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     python3 --version >nul 2>&1
@@ -146,17 +150,46 @@ goto :eof
 :setup_venv
 call :info "Setting up Python virtual environment..."
 
+:: Get Python version from .python-version file if it exists
+if exist .python-version (
+    set /p PYTHON_VERSION=<.python-version
+    set PYTHON_VERSION=%PYTHON_VERSION: =%
+) else (
+    set PYTHON_VERSION=%PYTHON_VERSION%
+)
+
 :: Check if venv exists
 if not exist .venv (
-    %PYTHON_CMD% -m venv .venv
+    :: Check if uv is installed
+    where uv >nul 2>&1
+    if %ERRORLEVEL% equ 0 (
+        call :info "Using uv to create virtual environment..."
+        uv venv -p "python%PYTHON_VERSION%" .venv
+    ) else (
+        call :info "Using venv module to create virtual environment..."
+        %PYTHON_CMD% -m venv .venv
+    )
 )
 
 :: Activate virtual environment
 call .venv\Scripts\activate
 
-:: Install Python dependencies
-call :info "Installing Python dependencies..."
-pip install -q -r requirements.txt
+:: Check if uv is installed for package installation
+where uv >nul 2>&1
+if %ERRORLEVEL% equ 0 (
+    call :info "Using uv for package installation..."
+    :: Use uv to install dependencies from pyproject.toml
+    uv pip install -q -r pyproject.toml
+) else (
+    call :warning "uv not found. Using pip instead. Consider installing uv for faster package installation."
+    :: Fallback to pip with requirements.txt if it exists
+    if exist requirements.txt (
+        pip install -q -r requirements.txt
+    ) else (
+        :: If no requirements.txt, install from pyproject.toml
+        pip install -q -r pyproject.toml
+    )
+)
 
 call :success "Python environment set up successfully"
 goto :eof
@@ -199,14 +232,14 @@ if exist .venv\Scripts\activate.bat (
 )
 
 :: Check if app.py exists
-if not exist app.py (
-    call :error "app.py not found. Cannot start application."
+if not exist src\app.py (
+    call :error "src/app.py not found. Cannot start application."
     exit /b 1
 )
 
 :: Run the Python application with proper parameters
 call :info "Starting the application server..."
-%PYTHON_CMD% app.py
+%PYTHON_CMD% src\app.py
 
 :: If Python app exits with error
 if %ERRORLEVEL% neq 0 (
